@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-from flask import Flask, render_template, url_for, request, redirect, session, g
+from flask import Flask, render_template, url_for, request, redirect, session
 app = Flask(__name__)
  
 app.debug = False
@@ -9,12 +9,11 @@ brand = "CrowdLit"
 
 @app.route('/')
 def index():
-	return render_template('home.html', brand=brand)
+	return render_template('home.html')
 
 @app.route('/home')
 def home():
-	return render_template('userpage.html', brand=brand)
-
+	return render_template('userpage.html')
 
 def main():
     app.run(host='0.0.0.0')

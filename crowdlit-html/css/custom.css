@@ -1,0 +1,46 @@
+body{
+  background:#EDECE4;
+  color:#6B6B6B;
+}
+
+.page{
+  background:#fff;
+  width:60%;
+  border-radius:8px;
+}
+
+.lit {
+  color:#0C8ACE;
+}
+
+header{
+  background:#064C72;
+  border-radius:8px 8px 0 0;
+}
+
+h1{
+  margin-top: 0px;
+  text-align: center;
+  color: #fff;
+  font-size: 50px;
+}
+
+.barcode{
+width: 90px;
+text-align: center;
+border: medium solid rgb(11, 138, 206);
+border-radius: 17px 17px 17px 17px;
+margin: 14px auto 0px;
+}
+
+.more{
+  background: none repeat scroll 0% 0% transparent;
+  margin-top: 11px;
+  border: medium solid indianred;
+  border-radius: 5px 5px 5px 5px;
+  padding: 11px;
+  margin-left: 53px;
+  font-weight: bold;
+  color: rgb(107, 107, 107);
+  width: 435px;"
+}
