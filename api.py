@@ -17,7 +17,7 @@ def home():
 
 
 def main():
-    app.run('0.0.0.0')
+    app.run(host='0.0.0.0')
     return 0
 
 if __name__ == "__main__":
