@@ -16,7 +16,8 @@ def home():
 	return render_template('userpage.html')
 
 def main():
-    app.run(host='0.0.0.0')
+	port = int(os.environ.get('PORT', 5000))	# for heroku
+    app.run(host='0.0.0.0', port=port)
     return 0
 
 if __name__ == "__main__":
