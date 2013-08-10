@@ -12,7 +12,7 @@ def index():
 	return render_template('home.html', brand=brand)
 
 @app.route('/home')
-def index():
+def home():
 	return render_template('userpage.html', brand=brand)
 
 
