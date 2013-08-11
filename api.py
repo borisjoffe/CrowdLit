@@ -52,13 +52,14 @@ def home():
 		return "Error: provide sessionId"
 	return u.get_all_history()
 
+# TODO - FIX this - returns exception but method works
 @app.route('/delete', methods=['POST', 'GET'])
 def delete_history():
 	u = begin_session(request.values)
 	if not u:
 		dbgErr('request', request)
 		return "Error: provide sessionId"
-	return u.clear_history()
+	return str(u.clear_history())
 
 @app.route('/submitlight', methods=['POST', 'GET'])
 def submitlight():
@@ -75,7 +76,9 @@ def submitlight():
 		dbgErr('request', request)
 		return "failure: provide sessionId"
 
+	u.add_history(request.values['PoleNumber'], request.values['Street'])
 	dbgInfo('seattle light request to submit', streetlight_form.build_string(request.args))
+
 
 	return "success" + "<br>submitted: " + streetlight_form.build_string(request.args)
 	#return render_template('submitlight.html')
@@ -148,6 +151,33 @@ def submit():
 	
 	dbgInfo("send_sms() retval", sms.send_sms())
 	return resp
+
+@app.route('/map', methods=['POST', 'GET'])
+def get_map():
+	BASE_URL = "http://maps.googleapis.com/maps/api/staticmap?center=Seattle,WA&zoom=10&size=500x500&sensor=false&markers=color:blue|label:*|"
+
+	import json
+
+	#http://maps.googleapis.com/maps/api/staticmap?center=Seattle,WA&zoom=10&size=500x500&sensor=false&markers=color:blue|label:*|220%202nd%20Avenue%20S%20Seattle|4540%2019th%20Ave%20NE%20Seattle
+	u = begin_session(request.values, no_session=True)
+	if not u:
+		dbgErr('request', request)
+		return "Error: provide sessionId"
+	
+	dbgInfo("user", u.userId)
+	my_locations = []
+	data = BASE_URL
+	my_history = json.loads(u.get_all_history())
+	for item in my_history:
+		my_locations.append(item['address'])
+		data += urllib.quote(str(item['address'])) + "Seattle |"
+
+	data = data[:-1]	
+	dbgInfo("my_locations", my_locations)
+	dbgInfo("url", data)
+
+	return '<img src="' + data + '">'
+
 
 def render_args(args):
 	s = "<h3>REQUEST PARAMS</h3>"
