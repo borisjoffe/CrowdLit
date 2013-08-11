@@ -1,2 +1,9 @@
 env/*
 .*.swp
+*.bundle
+*.pyc
+*.zip
+pyws-develop/*
+*.dat
+*.html
+pyws/*

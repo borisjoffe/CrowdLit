@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<description xmlns="http://www.w3.org/ns/wsdl" 
+             xmlns:tns="http://www.tmsws.com/wsdl20sample" 
+             xmlns:whttp="http://schemas.xmlsoap.org/wsdl/http/"
+             xmlns:wsoap="http://schemas.xmlsoap.org/wsdl/soap/"
+             targetNamespace="http://www.tmsws.com/wsdl20sample">
+
+<!-- Concrete Binding Over HTTP -->
+   <binding name="HttpBinding" interface="tns:Interface1" 
+            type="http://www.w3.org/ns/wsdl/http">
+      <operation ref="tns:Get" whttp:method="GET"/>
+   </binding>
+
+</description>
