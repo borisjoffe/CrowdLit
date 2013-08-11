@@ -17,9 +17,14 @@ class History(object):
 	userId = None
 
 	def __init__(self, sessionId='000'):
-		self.userId = users.get_logged_in_user(sessionId)	
-		self.HISTORY_FILE = os.path.join(os.getcwd(), self.userId + 'history.dat')
-		self.USER_IS_SET = True
+		if sessionId == '000': 	# special test case
+			self.userId = 'testuser'
+			self.HISTORY_FILE = os.path.join(os.getcwd(), 'history.dat')
+			self.USER_IS_SET = True
+		else:
+			self.userId = users.get_logged_in_user(sessionId)	
+			self.HISTORY_FILE = os.path.join(os.getcwd(), self.userId + 'history.dat')
+			self.USER_IS_SET = True
 
 	def add_history(self, pole_number, address):
 		pole_number = str(pole_number)

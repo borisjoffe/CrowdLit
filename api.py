@@ -27,13 +27,21 @@ HIGHLIGHT_END = '\x1b[0m'
 def index():
 	return render_template('home.html')
 
-def begin_session(args):
+def begin_session(args, no_session=False):
 	if 'sessionId' in args:
 		userId = history.History(args['sessionId'])
 		dbgInfo("Logged in as", userId.userId)
 		return userId
+	elif noSession:
+		userId = history.History('000')
+		dbgInfo("Logged in as", userId.userId)
+		return userId
 	else:
 		return False
+
+@app.route('/getuser', methods=['POST', 'GET'])
+def getuser():
+	return begin_session(request.args).userId
 
 @app.route('/home', methods=['POST', 'GET'])
 def home():
@@ -56,12 +64,12 @@ def submitlight():
 	"""Submit to seattle streetlight and internal DB"""	
 	print HIGHLIGHT_COLOR + "RECEIVED: " + HIGHLIGHT_END + str(request.values)
 
-	mandatory_args = ['sessionId', 'LastName', 'Email', 'PoleNumber', 'Street']
+	mandatory_args = ['LastName', 'Email', 'PoleNumber', 'Street']
 	for a in mandatory_args: 
 		if not a in request.values: 
 			return "failure: submit all args. " + a + " is missing"
 
-	u = begin_session(request.values)
+	u = begin_session(request.values, no_session=True)
 	if not u:
 		dbgErr('request', request)
 		return "failure: provide sessionId"
@@ -116,11 +124,11 @@ def submit():
 			if 'Address' in request.values:
 				dbgInfo('Got polenum and address')
 				print u.add_history(pole_number, request.values['Address'])
-				resp += "last history: " + u.get_last_history()
+				resp = "last history: " + u.get_last_history()
 			else:	# use fake address
 				dbgInfo('Got polenum and generated fake address')
 				print u.add_history(pole_number, history.newaddr())
-				resp += "last history: " + u.get_last_history()
+				resp = "last history: " + u.get_last_history()
 			dbgInfo('added history. ALL history up to now', u.get_all_history())
 			if 'Test' in request.values and request.values['Test'] == 'True':
 				dbgInfo("Got polenum. Return JSON because of 'Test' param. last history", u.get_last_history())
