@@ -4,3 +4,6 @@ env/*
 *.pyc
 *.zip
 pyws-develop/*
+*.dat
+*.html
+pyws/*

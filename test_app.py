@@ -15,6 +15,7 @@ class SOAPTestCase(unittest.TestCase):
 		#os.close(self.db_fd)
 		#os.unlink(flaskr.app.config['DATABASE'])
 
+	@unittest.skip("")
 	def test_empty_db(self):
 		request = """<?xml version="1.0"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
@@ -25,7 +26,12 @@ class SOAPTestCase(unittest.TestCase):
     </add_simple>
   </soap:Body>
 </soap:Envelope>"""
-		rv = self.app.post('/submit', data=request)
+		#rv = self.app.post('/submit', data=request)
+		rv = self.app.post('/submit', data="a=b")
+		return rv.data
+
+	def test_json(self):
+		rv = self.app.get('/login?userId=alice')
 		print rv.data
 
 
