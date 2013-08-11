@@ -14,9 +14,7 @@ import history
 from utils import *
  
 app = Flask(__name__)
-if os.environ['USING_HEROKU'] == "YES":
-	app.debug = False
-elif os.getlogin() == "boris":
+if os.getlogin() == "boris":
 	app.debug = True	# local account - debug
 else:
 	app.debug = False	# aws/heroku account - no debug
