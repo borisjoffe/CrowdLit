@@ -27,7 +27,7 @@ HIGHLIGHT_END = '\x1b[0m'
 def index():
 	return render_template('home.html')
 
-def begin_session(args, no_session=False):
+def begin_session(args, no_session=True):
 	if 'sessionId' in args:
 		userId = history.History(args['sessionId'])
 		dbgInfo("Logged in as", userId.userId)
