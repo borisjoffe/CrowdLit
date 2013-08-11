@@ -26,6 +26,9 @@ def submitlight():
 def wsdl():
 	return render_template('wsdl_response.wsdl')
 
+@app.route('/hello', methods=['POST', 'GET'])
+def hello_wsdl():
+	return render_template('hello.wsdl')
 
 def main():
 	port = int(os.environ.get('PORT', 5000))	# for heroku
