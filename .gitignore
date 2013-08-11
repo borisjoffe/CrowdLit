@@ -2,3 +2,5 @@ env/*
 .*.swp
 *.bundle
 *.pyc
+*.zip
+pyws-develop/*

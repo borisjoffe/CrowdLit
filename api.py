@@ -20,7 +20,19 @@ def home():
 @app.route('/submitlight', methods=['POST', 'GET'])
 def submitlight():
 	"""Submit to seattle streetlight and internal DB"""	
+	print request.values
 	return render_template('submitlight.html')
+
+@app.route('/submit', methods=['POST', 'GET'])
+def submit():
+	HIGHLIGHT_COLOR = '\x1b[96;1m'
+	HIGHLIGHT_END = '\x1b[0m'
+
+	print HIGHLIGHT_COLOR + "RECEIVED: " + HIGHLIGHT_END + str(request.values)
+	s = "<h3>REQUEST PARAMS</h3>"
+	for item in request.values:
+		s += item + " = " + request.values[item] + "<br>"
+	return s
 
 @app.route('/wsdl', methods=['POST', 'GET'])
 def wsdl():
