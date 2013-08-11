@@ -32,11 +32,12 @@ def begin_session(args, no_session=False):
 		userId = history.History(args['sessionId'])
 		dbgInfo("Logged in as", userId.userId)
 		return userId
-	elif noSession:
+	elif no_session:
 		userId = history.History('000')
 		dbgInfo("Logged in as", userId.userId)
 		return userId
 	else:
+		dbgErr("no sessionId submitted and no_session turned off")
 		return False
 
 @app.route('/getuser', methods=['POST', 'GET'])
@@ -74,9 +75,9 @@ def submitlight():
 		dbgErr('request', request)
 		return "failure: provide sessionId"
 
-	return streetlight_form.build_string(request.args)
+	dbgInfo('seattle light request to submit', streetlight_form.build_string(request.args))
 
-	return "success"	
+	return "success" + "<br>submitted: " + streetlight_form.build_string(request.args)
 	#return render_template('submitlight.html')
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -111,7 +112,7 @@ def submit2():
 def submit():
 	print HIGHLIGHT_COLOR + "RECEIVED: " + HIGHLIGHT_END + str(request.values)
 
-	u = begin_session(request.values)
+	u = begin_session(request.values, no_session=True)
 	if not u:
 		dbgErr('request', request)
 		return "Error: provide sessionId"

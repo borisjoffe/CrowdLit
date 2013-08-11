@@ -63,6 +63,7 @@ def process_sms_message(args):
 		msg = "Streetlight issue reported. Thank you!."
 		return render_template('sms_confirm.xml', msg=msg)
 	else:
+		msg = "Please make sure to send us just the 7 digit pole number"
 		return render_template('sms_confirm.xml', msg=msg)
 
 def verify_pole_number(pole_number):
