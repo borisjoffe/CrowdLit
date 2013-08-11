@@ -44,19 +44,25 @@ def process_sms_message(args):
 		dbgErr("no 'body' key in request")
 		msg = "Please send the streetlight number to (206) 496-0852. (ERROR: no ['body'])"
 		return render_template('sms_confirm.xml', msg=msg)
-		
-	pole_number = str(args['Body']).strip()
+	
+	if verify_pole_number(args['Body'])
+		msg = "Streetlight issue reported. Thank you!."
+		return render_template('sms_confirm.xml', msg=msg)
+	else:
+		return render_template('sms_confirm.xml', msg=msg)
+
+def verify_pole_number(pole_number):
+	pole_number = str(pole_number).strip()
 	dbgInfo('processing stripped pole number', pole_number)
 
 	# check for 7 digits
 	if not re.search(SMS_POLE_REGEXP, pole_number):
 		dbgErr("pole number did not match regexp")
 		msg = "Please supply the 7 digit pole number"
-		return render_template('sms_confirm.xml', msg=msg)
+		return False
 	else:
 		dbgInfo("polenumber matches regepx")
+		return True
 
-	msg = "Streetlight issue reported. Thank you!."
-	return render_template('sms_confirm.xml', msg=msg)
 
 

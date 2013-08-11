@@ -1,24 +1,21 @@
 #!/usr/bin/env python
 import sys
 import os
-import base64
-import json
-import string
 import urllib
 import urllib2
 from flask import Flask, render_template, url_for, request, redirect, session
 
 import streetlight_form
 import sms
+import users
 from utils import *
  
 app = Flask(__name__)
 if os.getlogin() == "boris":
-	app.debug = True
+	app.debug = True	# local account - debug
 else:
-	app.debug = True
+	app.debug = False	# aws/heroku account - no debug
 brand = "CrowdLit"
-SESSION_FILE = os.path.join(os.getcwd(), 'sessions.dat')
 
 @app.route('/')
 def index():
@@ -39,42 +36,17 @@ def login():
 	"""Pass a userId=myuserid pair to login"""
 	print "\n"
 	if not 'userId' in request.values:
-		return "ERROR"
+		return "ERROR: submit a userId"
 
 	userId = request.values['userId']
-	print "userId: " + str(userId)
-	sessions = clear_previous_sessions(userId)
-	print "sessions: " + str(sessions)
-
-	sessionId = base64.urlsafe_b64encode(os.urandom(12))
-	print sessionId
-	new_session = {'userId': userId, 'sessionId': sessionId}
-	sessions.append(new_session)
-	print "new session: " + json.dumps(new_session)
-
-	write_all_sessions(sessions)
-	print "done writing all sessions: " + json.dumps(sessions)
-	return sessionId
-
+	return users.login(userId)
+	
 @app.route('/logged_in', methods=['POST', 'GET'])
 def logged_in():
 	if not 'sessionId' in request.values:
-		return "ERROR"
+		return "ERROR: submit a sessionId"
 	sessionId = request.values['sessionId']
-	return check_login(sessionId)
-
-def check_login(sessionId):
-	#print "checking session id " + sessionId
-	sessions = get_all_sessions()
-	#print "all sessions: " + sessions
-
-	logged_in = False
-	sessions = json.loads(sessions)
-	for item in sessions:
-		if item['sessionId'] == sessionId:
-			logged_in = True
-		#print "checking: " + item['sessionId']
-	return str(logged_in)
+	return users.check_login(sessionId)
 
 @app.route('/smsreply', methods=['POST', 'GET'])
 def smsreply():
@@ -88,11 +60,11 @@ def submit():
 
 	print HIGHLIGHT_COLOR + "RECEIVED: " + HIGHLIGHT_END + str(request.values)
 
-	# SEND SMS
 	if not 'From' in request.values:
 		dbgWarn("no 'From' key in request. Not SMS - Not Replying")
 		return render_args(request.values) + "<br>WARN: Not an SMS. Not replying"
 	
+	# SEND SMS
 	dbgInfo("FROM DETECTED. WILL TRY TO RESPOND", request.values)
 	resp = "<small>"+ render_args(request.values) + "</small><br>"
 	rcpt = request.values['From']
@@ -115,42 +87,6 @@ def submit():
 	"""
 	dbgInfo("send_sms() retval", sms.send_sms())
 	return resp
-
-
-def clear_previous_sessions(userId):
-	"""Clear values in json array string with specified userId"""
-	sessions = json.loads(get_all_sessions())
-	i = 0
-	l = len(sessions)
-	while i < l:
-		if sessions[i]['userId'] == userId:
-			del sessions[i]
-			print "old session cleared"
-			l = len(sessions) # adjust length
-			
-		i += 1
-
-	return sessions
-
-def write_all_sessions(sessions_object):
-	try:
-		f = open(SESSION_FILE, 'w')
-		f.write( json.dumps(sessions_object) )
-		f.close
-	except Exception as e:
-		print e
-
-def get_all_sessions():
-	if not os.access(SESSION_FILE, os.F_OK):	# if file doesn't exist
-		print "session file doesn't exist. return empty array"
-		return "[]"
-	try:
-		f = open(SESSION_FILE, 'r')
-		json_sessions = string.join(f.readlines())
-		f.close()
-	except Exception as e:
-		print e
-	return json_sessions
 
 def render_args(args):
 	s = "<h3>REQUEST PARAMS</h3>"
