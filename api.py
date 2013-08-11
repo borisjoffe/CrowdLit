@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 import sys
 import os
+import re
 import urllib
+import urlparse
 import urllib2
 from flask import Flask, render_template, url_for, request, redirect, session
 
 import streetlight_form
 import sms
 import users
+import history
 from utils import *
  
 app = Flask(__name__)
@@ -17,19 +20,56 @@ else:
 	app.debug = False	# aws/heroku account - no debug
 brand = "CrowdLit"
 
+HIGHLIGHT_COLOR = '\x1b[96;1m'
+HIGHLIGHT_END = '\x1b[0m'
+
 @app.route('/')
 def index():
 	return render_template('home.html')
 
-@app.route('/home')
+def begin_session(args):
+	if 'sessionId' in args:
+		userId = history.History(args['sessionId'])
+		dbgInfo("Logged in as", userId.userId)
+		return userId
+	else:
+		return False
+
+@app.route('/home', methods=['POST', 'GET'])
 def home():
-	return render_template('userpage.html')
+	u = begin_session(request.values)
+	if not u:
+		dbgErr('request', request)
+		return "Error: provide sessionId"
+	return u.get_all_history()
+
+@app.route('/delete', methods=['POST', 'GET'])
+def delete_history():
+	u = begin_session(request.values)
+	if not u:
+		dbgErr('request', request)
+		return "Error: provide sessionId"
+	return u.clear_history()
 
 @app.route('/submitlight', methods=['POST', 'GET'])
 def submitlight():
 	"""Submit to seattle streetlight and internal DB"""	
-	print request.values
-	return render_template('submitlight.html')
+	print HIGHLIGHT_COLOR + "RECEIVED: " + HIGHLIGHT_END + str(request.values)
+
+	mandatory_args = ['sessionId', 'LastName', 'Email', 'PoleNumber', 'Street']
+	for a in mandatory_args: 
+		if not a in request.values: 
+			return "failure: submit all args. " + a + " is missing"
+
+	u = begin_session(request.values)
+	if not u:
+		dbgErr('request', request)
+		return "failure: provide sessionId"
+
+	return streetlight_form.build_string(request.args)
+
+	return "success"	
+	#return render_template('submitlight.html')
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -52,13 +92,39 @@ def logged_in():
 def smsreply():
 	return sms.process_sms_message(request.values)
 
+@app.route('/submit2', methods=['POST', 'GET'])
+def submit2():
+	dbgInfo('request', request)
+	print HIGHLIGHT_COLOR + "RECEIVED: " + HIGHLIGHT_END + str(request.values)
+	resp = "<small>"+ render_args(request.values) + "</small><br>"
+	return resp
+	
 @app.route('/submit', methods=['POST', 'GET'])
 def submit():
-	dbgInfo('request', request)
-	HIGHLIGHT_COLOR = '\x1b[96;1m'
-	HIGHLIGHT_END = '\x1b[0m'
-
 	print HIGHLIGHT_COLOR + "RECEIVED: " + HIGHLIGHT_END + str(request.values)
+
+	u = begin_session(request.values)
+	if not u:
+		dbgErr('request', request)
+		return "Error: provide sessionId"
+
+	if 'Body' in request.values:
+		pole_number  = request.values['Body']
+		if not sms.verify_pole_number(pole_number):
+			dbgInfo('pole number is in wrong format. Continuing to From attr check and generic response')
+		else:
+			if 'Address' in request.values:
+				dbgInfo('Got polenum and address')
+				print u.add_history(pole_number, request.values['Address'])
+				resp += "last history: " + u.get_last_history()
+			else:	# use fake address
+				dbgInfo('Got polenum and generated fake address')
+				print u.add_history(pole_number, history.newaddr())
+				resp += "last history: " + u.get_last_history()
+			dbgInfo('added history. ALL history up to now', u.get_all_history())
+			if 'Test' in request.values and request.values['Test'] == 'True':
+				dbgInfo("Got polenum. Return JSON because of 'Test' param. last history", u.get_last_history())
+				return u.get_last_history()
 
 	if not 'From' in request.values:
 		dbgWarn("no 'From' key in request. Not SMS - Not Replying")
@@ -66,25 +132,11 @@ def submit():
 	
 	# SEND SMS
 	dbgInfo("FROM DETECTED. WILL TRY TO RESPOND", request.values)
-	resp = "<small>"+ render_args(request.values) + "</small><br>"
 	rcpt = request.values['From']
 	resp += "<hr>RECIPIENT: " + rcpt + "<br>"
 	dbgInfo('FROM', rcpt)
 	resp += "<h3>Twilio Response:</h3>"
 	
-	"""		REST API TWILIO
-	data = "From=%2B12067353590&To=" + rcpt + "&Body=Streetlight%20issue%20reported.%20Thank%20you%21"
-	resp += "SUBMITTING API CALL with data: " + TWILIO_SEND_SMS_API + "?" + data + "<br>"
-
-	req = urllib2.Request(TWILIO_SEND_SMS_API, data=data)
-	req.add_header('authorization', 'Basic ' + base64.b64encode(TWILIO_SID) + ":" + base64.b64encode(TWILIO_AUTH_TOKEN))
-	#req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-
-	try:
-		resp += str(urllib2.urlopen(req).read())
-	except Exception as e:
-		dbgInfo("urlerror", e)
-	"""
 	dbgInfo("send_sms() retval", sms.send_sms())
 	return resp
 

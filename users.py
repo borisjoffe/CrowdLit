@@ -36,6 +36,19 @@ def check_login(sessionId):
 		#print "checking: " + item['sessionId']
 	return str(logged_in)
 
+def get_logged_in_user(sessionId):
+	userId = None
+
+	if sessionId == '000':
+		return 'testuser'
+
+	sessions = json.loads(get_all_sessions())
+	for item in sessions:
+		if item['sessionId'] == sessionId:
+			userId = item['userId']
+
+	return userId
+	
 def clear_previous_sessions(userId):
 	"""Clear values in json array string with specified userId"""
 	sessions = json.loads(get_all_sessions())

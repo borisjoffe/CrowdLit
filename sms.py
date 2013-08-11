@@ -35,6 +35,20 @@ def send_sms(sender="+12064960852", recipient="+19734195443", text="Streetlight 
 		dbgInfo('message has no sid attribute', message)
 		return None
 
+	"""		REST API TWILIO
+	data = "From=%2B12067353590&To=" + rcpt + "&Body=Streetlight%20issue%20reported.%20Thank%20you%21"
+	resp += "SUBMITTING API CALL with data: " + TWILIO_SEND_SMS_API + "?" + data + "<br>"
+
+	req = urllib2.Request(TWILIO_SEND_SMS_API, data=data)
+	req.add_header('authorization', 'Basic ' + base64.b64encode(TWILIO_SID) + ":" + base64.b64encode(TWILIO_AUTH_TOKEN))
+	#req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+
+	try:
+		resp += str(urllib2.urlopen(req).read())
+	except Exception as e:
+		dbgInfo("urlerror", e)
+	"""
+
 def process_sms_message(args):
 	"""Return template for smsreply - Messaging Request URL"""
 	dbgInfo("/smsreply args", args)
@@ -45,7 +59,7 @@ def process_sms_message(args):
 		msg = "Please send the streetlight number to (206) 496-0852. (ERROR: no ['body'])"
 		return render_template('sms_confirm.xml', msg=msg)
 	
-	if verify_pole_number(args['Body'])
+	if verify_pole_number(args['Body']):
 		msg = "Streetlight issue reported. Thank you!."
 		return render_template('sms_confirm.xml', msg=msg)
 	else:
@@ -61,7 +75,7 @@ def verify_pole_number(pole_number):
 		msg = "Please supply the 7 digit pole number"
 		return False
 	else:
-		dbgInfo("polenumber matches regepx")
+		dbgInfo("polenumber matches regexp")
 		return True
 
 
