@@ -22,6 +22,11 @@ def submitlight():
 	"""Submit to seattle streetlight and internal DB"""	
 	return render_template('submitlight.html')
 
+@app.route('/wsdl', methods=['POST', 'GET'])
+def wsdl():
+	return render_template('wsdl_response.wsdl')
+
+
 def main():
 	port = int(os.environ.get('PORT', 5000))	# for heroku
 	app.run(host='0.0.0.0', port=port)
