@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import sys
 import os
-import re
 import base64
 import json
 import string
@@ -10,22 +9,15 @@ import urllib2
 from flask import Flask, render_template, url_for, request, redirect, session
 
 import streetlight_form
+import sms
 from utils import *
  
 app = Flask(__name__)
 if os.getlogin() == "boris":
 	app.debug = True
 else:
-	app.debug = False
+	app.debug = True
 brand = "CrowdLit"
-
-TWILIO_AUTH_TOKEN = "0d793a4c38362e49f51b19e3c3ca7ea9"
-TWILIO_SID = "ACf3f9ee7b4f7e932576ac40fbfbd2ef3c"
-TWILIO_API = "https://api.twilio.com/2010-04-01/"
-TWILIO_SEND_SMS_API = TWILIO_API + "Accounts/" + TWILIO_SID + "/SMS/Messages.json"
-
-SMS_POLE_REGEXP = '\d{7}'
-
 SESSION_FILE = os.path.join(os.getcwd(), 'sessions.dat')
 
 @app.route('/')
@@ -84,30 +76,9 @@ def check_login(sessionId):
 		#print "checking: " + item['sessionId']
 	return str(logged_in)
 
-
 @app.route('/smsreply', methods=['POST', 'GET'])
 def smsreply():
-	dbgInfo("/smsreply args", request.values)
-		
-	# Check for body attribute
-	if not 'Body' in request.values:
-		dbgErr("no 'body' key in request")
-		msg = "Please send the streetlight number to (206) 496-0852. (ERROR: no ['body'])"
-		return render_template('sms_confirm.xml', msg=msg)
-		
-	pole_number = str(request.values['Body']).strip()
-	dbgInfo('processing stripped pole number', pole_number)
-
-	# check for 7 digits
-	if not re.search(SMS_POLE_REGEXP, pole_number):
-		dbgErr("pole number did not match regexp")
-		msg = "Please supply the 7 digit pole number"
-		return render_template('sms_confirm.xml', msg=msg)
-	else:
-		dbgInfo("polenumber matches regepx")
-
-	msg = "Streetlight issue reported. Thank you!."
-	return render_template('sms_confirm.xml', msg=msg)
+	return sms.process_sms_message(request.values)
 
 @app.route('/submit', methods=['POST', 'GET'])
 def submit():
@@ -127,6 +98,7 @@ def submit():
 	rcpt = request.values['From']
 	resp += "<hr>RECIPIENT: " + rcpt + "<br>"
 	dbgInfo('FROM', rcpt)
+	resp += "<h3>Twilio Response:</h3>"
 	
 	"""		REST API TWILIO
 	data = "From=%2B12067353590&To=" + rcpt + "&Body=Streetlight%20issue%20reported.%20Thank%20you%21"
@@ -135,44 +107,13 @@ def submit():
 	req = urllib2.Request(TWILIO_SEND_SMS_API, data=data)
 	req.add_header('authorization', 'Basic ' + base64.b64encode(TWILIO_SID) + ":" + base64.b64encode(TWILIO_AUTH_TOKEN))
 	#req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-	"""
 
-	resp += "<h3>Twilio Response:</h3>"
-
-	""" REST API TWILIO
 	try:
 		resp += str(urllib2.urlopen(req).read())
 	except Exception as e:
 		dbgInfo("urlerror", e)
 	"""
-
-	# Download the Python helper library from twilio.com/docs/python/install
-	from twilio.rest import TwilioRestClient
-	from twilio import TwilioRestException
-	# Your Account Sid and Auth Token from twilio.com/user/account
-	account_sid = "ACf3f9ee7b4f7e932576ac40fbfbd2ef3c"
-	auth_token = "{{ auth_token }}"
-	msg = "Streetlight issue reported. Thanks for the message!."
-
-	client = TwilioRestClient(TWILIO_SID, TWILIO_AUTH_TOKEN)
-	message = None
-	try:
-		message = client.sms.messages.create(body=render_template('sms_confirm.xml', msg=msg),
-		to="+19734195443",
-		#from_="+12067353590")
-		from_="+12064960852")
-		resp += "TWILIO API MESSAGE: " + str(message) + "<br>"
-	except TwilioRestException as e:
-		dbgErr("TwilioException", e)
-		resp += "<br><b>TwilioException</b>: " + str(e)
-
-	if message and message.sid:
-		resp += "<br>" + str(message.sid)
-		dbgInfo("message.sid", message.sid)
-	else:
-		dbgInfo('message has no sid attribute', message)
-		resp += "<br> message has no sid attribute"
-
+	dbgInfo("send_sms() retval", sms.send_sms())
 	return resp
 
 
