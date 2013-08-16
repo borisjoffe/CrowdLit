@@ -5,15 +5,18 @@ from flask import render_template
 from twilio.rest import TwilioRestClient
 from twilio import TwilioRestException
 from utils import *
+import config
 
-TWILIO_AUTH_TOKEN = "0d793a4c38362e49f51b19e3c3ca7ea9"
+TWILIO_AUTH_TOKEN = config.api_key
+DEFAULT_SENDER = config.twilio_sender
+DEFAULT_RECIPIENT = config.default_recipient
 TWILIO_SID = "ACf3f9ee7b4f7e932576ac40fbfbd2ef3c"
 TWILIO_API = "https://api.twilio.com/2010-04-01/"
 TWILIO_SEND_SMS_API = TWILIO_API + "Accounts/" + TWILIO_SID + "/SMS/Messages.json"
 
 SMS_POLE_REGEXP = '\d{7}'
 
-def send_sms(sender="+12064960852", recipient="+19734195443", text="Streetlight issue reported."):
+def send_sms(sender=DEFAULT_SENDER, recipient=DEFAULT_RECIPIENT, text="Streetlight issue reported."):
 	# Download the Python helper library from twilio.com/docs/python/install
 	# Your Account Sid and Auth Token from twilio.com/user/account
 

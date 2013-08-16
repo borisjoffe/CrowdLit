@@ -50,8 +50,10 @@ class History(object):
 
 	def clear_history(self):
 		if not os.access(self.HISTORY_FILE, os.F_OK):	# if file doesn't exist
-			return
+			dbgErr("Cannot delete file because it doesn't exist", self.HISTORY_FILE)
+			return False
 		os.remove(self.HISTORY_FILE)
+		return True
 
 	def get_last_history(self):
 		all_history = json.loads(self.get_all_history())
