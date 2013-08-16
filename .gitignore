@@ -7,3 +7,4 @@ pyws-develop/*
 *.dat
 *.html
 pyws/*
+config.py
