@@ -2,7 +2,7 @@
 import os, sys
 
 config_filename = 'config.py'
-options = { 'api_key' : 'Paste Twilio API Key (from https://coinbase.com/account/integration)',
+options = { 'api_key' : 'Paste Twilio API Key (from https://www.twilio.com/user/account)',
 			'twilio_sender': 'Paste Twilio number here (in the format +18001115555)',
 			'default_recipient': 'Paste your phone number here (in the format +18001115555)' }
 
